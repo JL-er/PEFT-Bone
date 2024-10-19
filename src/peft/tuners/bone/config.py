@@ -77,7 +77,7 @@ class BoneConfig(PeftConfig):
         metadata={"help": "List of module names or regex expression of the module names to exclude from Bone."},
     )
     init_weights: bool = field(
-        default=False,
+        default=True,
         metadata={
             "help": (
                 "Whether to initialize the weights of the Bone layers with their default initialization. Don't change "

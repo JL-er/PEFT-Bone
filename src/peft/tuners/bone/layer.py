@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import math
 import warnings
 from typing import Any, List, Optional, Union
 
@@ -78,13 +78,17 @@ class BoneLayer(BaseTunerLayer):
 
         if init_weights:
             self.reset_bone_parameters(adapter_name, r)
-
+        else:
+            self.reset_bone_parameters_random(adapter_name)
         # Move new weights to device
         self._move_adapter_to_device_of_base_layer(adapter_name)
         self.set_adapter(self.active_adapters)
 
     def reset_bone_parameters(self, adapter_name: str, r):
         self.bone_block[adapter_name] = nn.Parameter(torch.zeros(self.out_features // r, r, r), requires_grad=True)
+
+    def reset_bone_parameters_random(self, adapter_name: str):
+        nn.init.kaiming_uniform_(self.bone_block[adapter_name], a=math.sqrt(5))
 
     def scale_layer(self, scale: float) -> None:
         if scale == 1:

@@ -300,7 +300,7 @@ TEST_CASES = [
     ########
     ("Vanilla MLP 1 Bone", "MLP", BoneConfig, {"target_modules": "lin0", "r": 2}),
     ("Vanilla MLP 2 Bone", "MLP", BoneConfig, {"target_modules": ["lin0"], "r": 2}),
-    # ("Vanilla MLP 3 Bone", "MLP", BoneConfig, {"target_modules": ["lin0", "lin1"], "r": 2}),
+    ("Vanilla MLP 3 Bone", "MLP", BoneConfig, {"target_modules": ["lin0", "lin1"], "r": 2}),
     ("Vanilla MLP 5 Bone", "MLP", BoneConfig, {"target_modules": ["lin0"], "modules_to_save": ["lin1"], "r": 2}),
     #############
     # LN Tuning #
@@ -566,20 +566,20 @@ MULTIPLE_ACTIVE_ADAPTERS_TEST_CASES = [
         {"target_modules": ["lin0"], "init_weights": False},
         {"target_modules": ["lin1"], "init_weights": False},
     ),
-    # (
-    #     "Bone Same",
-    #     "bone",
-    #     BoneConfig,
-    #     {"target_modules": ["lin0"], "init_weights": False, "r": 2},
-    #     {"target_modules": ["lin0"], "init_weights": False, "r": 2},
-    # ),
-    # (
-    #     "Bone Different",
-    #     "bone",
-    #     BoneConfig,
-    #     {"target_modules": ["lin0"], "init_weights": False, "r": 2},
-    #     {"target_modules": ["lin1"], "init_weights": False, "r": 2},
-    # ),
+    (
+        "Bone Same",
+        "bone",
+        BoneConfig,
+        {"target_modules": ["lin0"], "init_weights": False, "r": 2},
+        {"target_modules": ["lin0"], "init_weights": False, "r": 2},
+    ),
+    (
+        "Bone Different",
+        "bone",
+        BoneConfig,
+        {"target_modules": ["lin0"], "init_weights": False, "r": 2},
+        {"target_modules": ["lin1"], "init_weights": False, "r": 2},
+    ),
     (
         "VBLoRA Same",
         "vblora",
