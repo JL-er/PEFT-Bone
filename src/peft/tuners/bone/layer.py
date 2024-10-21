@@ -40,8 +40,6 @@ class BoneLayer(BaseTunerLayer):
         base_layer = self.get_base_layer()
         if isinstance(base_layer, nn.Linear):
             self.in_features, self.out_features = base_layer.in_features, base_layer.out_features
-        elif isinstance(base_layer, nn.Conv2d):
-            self.in_features, self.out_features = base_layer.in_channels, base_layer.out_channels
         else:
             raise ValueError(f"Unsupported layer type {type(base_layer)}")
 
@@ -232,21 +230,22 @@ class BoneLinear(nn.Module, BoneLayer):
         elif self.merged:
             result = self.base_layer(x, *args, **kwargs)
         else:
-            # for active_adapter in self.active_adapters:
-            #     if active_adapter not in self.bone_block.keys():
-            #         continue
-            #     orig_weight = self.base_layer.weight.data.clone()
-            #     delta_weight = self.get_delta_weight(active_adapter, orig_weight)
-            #     orig_weight += delta_weight
-
-            # result = F.linear(input=x, weight=orig_weight, bias=self.base_layer.bias)
-            result = self.base_layer(x, *args, **kwargs)
+            orig_weight = self.base_layer.weight.data.clone()
             for active_adapter in self.active_adapters:
                 if active_adapter not in self.bone_block.keys():
                     continue
-                delta_weight = self.get_delta_weight(active_adapter, self.base_layer.weight.data)
+                delta_weight = self.get_delta_weight(active_adapter, orig_weight)
+                orig_weight = orig_weight + delta_weight
 
-                result += F.linear(input=x, weight=delta_weight, bias=None)
+            result = F.linear(input=x, weight=orig_weight, bias=self.base_layer.bias)
+            # result = self.base_layer(x, *args, **kwargs)
+            # delta_weight = self.base_layer.weight.data.clone()
+            # for active_adapter in self.active_adapters:
+            #     if active_adapter not in self.bone_block.keys():
+            #         continue
+            #     delta_weight = self.get_delta_weight(active_adapter, delta_weight)
+
+            #     result = result + F.linear(input=x, weight=delta_weight, bias=None)
 
         result = result.to(previous_dtype)
         return result
