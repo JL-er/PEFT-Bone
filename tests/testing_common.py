@@ -123,6 +123,7 @@ CONFIG_TESTING_KWARGS = (
     # Bone
     {
         "target_modules": None,
+        "r": 2,
     },
 )
 
