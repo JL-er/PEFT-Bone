@@ -43,9 +43,8 @@ class BoneConfig(PeftConfig):
             When passing a list of strings, either an exact match will be performed or it is checked if the name of the
             module ends with any of the passed strings.
         init_weights (bool | Literal["bat"]):
-            Different initializations correspond to different Bone variants. 
-            By default, setting True uses the Bone structure, 
-            while "bat" selects the Bat structure.
+            Different initializations correspond to different Bone variants. By default, setting True uses the Bone
+            structure, while "bat" selects the Bat structure.
         layers_to_transform (`Union[List[int], int]`):
             The layer indices to transform. If a list of ints is passed, it will apply the adapter to the layer indices
             that are specified in this list. If a single integer is passed, it will apply the transformations on the

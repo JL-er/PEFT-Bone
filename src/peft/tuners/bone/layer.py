@@ -60,7 +60,6 @@ class BoneLayer(BaseTunerLayer):
         if r <= 0:
             raise ValueError(f"`r` should be a positive integer value but the value passed is {r}")
 
-
         self.bone_r[adapter_name] = r
 
         # Determine shape of Bone weights
@@ -72,7 +71,7 @@ class BoneLayer(BaseTunerLayer):
             raise TypeError(f"Bone is not implemented for base layers of type {type(base_layer).__name__}")
 
         # Initialize weights
-        if isinstance(init_weights, str) and init_weights=='bat':
+        if isinstance(init_weights, str) and init_weights == "bat":
             if self.in_features % r != 0 or self.out_features % r != 0:
                 raise ValueError("The weight matrix must be fully divisible into [r, r] blocks.")
             self.reset_bat_parameters(adapter_name, r)
@@ -155,7 +154,7 @@ class BoneLinear(nn.Module, BoneLayer):
                     # Note that safe_merge will be slower than the normal merge
                     # because of the copy operation.
                     orig_weight = base_layer.weight.data.clone()
-                    if self.bone_fn=='bat':
+                    if self.bone_fn == "bat":
                         delta_weight = self.get_delta_weight(active_adapter, orig_weight)
                         orig_weight += delta_weight
                     else:
@@ -169,7 +168,7 @@ class BoneLinear(nn.Module, BoneLayer):
 
                     self.base_layer.weight.data = orig_weight
                 else:
-                    if self.bone_fn=='bat':
+                    if self.bone_fn == "bat":
                         delta_weight = self.get_delta_weight(active_adapter, self.base_layer.weight.data)
                         self.base_layer.weight.data += delta_weight
                     else:
@@ -188,7 +187,7 @@ class BoneLinear(nn.Module, BoneLayer):
             active_adapter = self.merged_adapters.pop()
             if active_adapter in self.bone_block.keys():
                 orig_weight = self.get_base_layer().weight.data.clone()
-                if self.bone_fn=='bat':
+                if self.bone_fn == "bat":
                     delta_weight = self.get_delta_weight(active_adapter, orig_weight, re=True)
                 else:
                     delta_weight = self.get_delta_weight_bone(active_adapter, orig_weight, re=True)
@@ -237,7 +236,7 @@ class BoneLinear(nn.Module, BoneLayer):
             self.bone_block[adapter].data = weight_bone.to(dtype)
 
         return output_tensor
-    
+
     def get_delta_weight_bone(self, adapter, orig_weight, re: bool = False) -> torch.Tensor:
         """
         Compute the delta weight for the given adapter.
@@ -260,32 +259,39 @@ class BoneLinear(nn.Module, BoneLayer):
 
         in_features = orig_weight.size(-1)
         r = weight_bone.size(0)
-        if in_features%r!=0:
+        if in_features % r != 0:
             last_size = in_features % r
-            n_block = in_features//r
-            n_block_size = n_block*r#inf-(inf % r)
-            #output_tensor = orig_weight.clone()
-            #t_weight = orig_weight[:, :-duo].clone()
+            n_block = in_features // r
+            n_block_size = n_block * r  # inf-(inf % r)
+            # output_tensor = orig_weight.clone()
+            # t_weight = orig_weight[:, :-duo].clone()
             if re:
-                orig_weight[:, :n_block_size] =(orig_weight[:, :n_block_size].reshape(-1, n_block,r).permute(1,2,0) - weight_bone).permute(2,0,1).reshape(*orig_weight[:, :n_block_size].shape)
-                orig_weight[:, n_block_size:] =orig_weight[:, n_block_size:]+ (weight_bone.transpose(0,1))[:, :last_size]
+                orig_weight[:, :n_block_size] = (
+                    (orig_weight[:, :n_block_size].reshape(-1, n_block, r).permute(1, 2, 0) - weight_bone)
+                    .permute(2, 0, 1)
+                    .reshape(*orig_weight[:, :n_block_size].shape)
+                )
+                orig_weight[:, n_block_size:] = (
+                    orig_weight[:, n_block_size:] + (weight_bone.transpose(0, 1))[:, :last_size]
+                )
             else:
-                orig_weight[:, :n_block_size] =(orig_weight[:, :n_block_size].reshape(-1, n_block,r).permute(1,2,0) - weight_bone).permute(2,0,1).reshape(*orig_weight[:, :n_block_size].shape)
-                orig_weight[:, n_block_size:] =orig_weight[:, n_block_size:]+ (weight_bone.transpose(0,1))[:, :last_size]
+                orig_weight[:, :n_block_size] = (
+                    (orig_weight[:, :n_block_size].reshape(-1, n_block, r).permute(1, 2, 0) - weight_bone)
+                    .permute(2, 0, 1)
+                    .reshape(*orig_weight[:, :n_block_size].shape)
+                )
+                orig_weight[:, n_block_size:] = (
+                    orig_weight[:, n_block_size:] + (weight_bone.transpose(0, 1))[:, :last_size]
+                )
             output_tensor = orig_weight
 
         else:
             if re:
-                w = (
-                    orig_weight.reshape(-1, orig_weight.size(1) // r, r).permute(1,2,0) - weight_bone
-                )
+                w = orig_weight.reshape(-1, orig_weight.size(1) // r, r).permute(1, 2, 0) - weight_bone
                 output_tensor = w.permute(1, 2, 0, 3).reshape(*orig_weight.shape)
             else:
-                w = (
-                    orig_weight.reshape(-1, orig_weight.size(1) // r, r).permute(1,2,0) + weight_bone
-                )
-                output_tensor = w.permute(1,2,0).reshape(*orig_weight.shape)
-
+                w = orig_weight.reshape(-1, orig_weight.size(1) // r, r).permute(1, 2, 0) + weight_bone
+                output_tensor = w.permute(1, 2, 0).reshape(*orig_weight.shape)
 
         if cast_to_fp32:
             output_tensor = output_tensor.to(dtype=dtype)
@@ -305,7 +311,7 @@ class BoneLinear(nn.Module, BoneLayer):
         elif self.merged:
             result = self.base_layer(x, *args, **kwargs)
         else:
-            if self.bone_fn=='bat':
+            if self.bone_fn == "bat":
                 orig_weight = self.base_layer.weight.data.clone()
                 for active_adapter in self.active_adapters:
                     if active_adapter not in self.bone_block.keys():
@@ -321,11 +327,11 @@ class BoneLinear(nn.Module, BoneLayer):
                         continue
                     bone = self.bone_block[active_adapter]
                     r = bone.size(0)
-                    if x.size(-1)%r!=0:
+                    if x.size(-1) % r != 0:
                         padding_size = (r - x.size(-1) % r) % r
                         x = F.pad(x, (0, padding_size))
 
-                    result = result + torch.sum(x.reshape(x.size(0), x.size(1), x.size(-1)//r, r), dim=2)@bone
+                    result = result + torch.sum(x.reshape(x.size(0), x.size(1), x.size(-1) // r, r), dim=2) @ bone
 
         result = result.to(previous_dtype)
         return result
