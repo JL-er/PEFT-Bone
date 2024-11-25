@@ -262,9 +262,8 @@ class BoneLinear(nn.Module, BoneLayer):
         if in_features % r != 0:
             last_size = in_features % r
             n_block = in_features // r
-            n_block_size = n_block * r  # inf-(inf % r)
-            # output_tensor = orig_weight.clone()
-            # t_weight = orig_weight[:, :-duo].clone()
+            n_block_size = n_block * r
+
             if re:
                 orig_weight[:, :n_block_size] = (
                     (orig_weight[:, :n_block_size].reshape(-1, n_block, r).permute(1, 2, 0) - weight_bone)
@@ -288,10 +287,10 @@ class BoneLinear(nn.Module, BoneLayer):
         else:
             if re:
                 w = orig_weight.reshape(-1, orig_weight.size(1) // r, r).permute(1, 2, 0) - weight_bone
-                output_tensor = w.permute(1, 2, 0, 3).reshape(*orig_weight.shape)
+                output_tensor = w.permute(2, 0, 1).reshape(*orig_weight.shape)
             else:
                 w = orig_weight.reshape(-1, orig_weight.size(1) // r, r).permute(1, 2, 0) + weight_bone
-                output_tensor = w.permute(1, 2, 0).reshape(*orig_weight.shape)
+                output_tensor = w.permute(2, 0, 1).reshape(*orig_weight.shape)
 
         if cast_to_fp32:
             output_tensor = output_tensor.to(dtype=dtype)
