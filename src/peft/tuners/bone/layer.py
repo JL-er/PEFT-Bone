@@ -272,11 +272,11 @@ class BoneLinear(nn.Module, BoneLayer):
                     .reshape(*orig_weight[:, :n_block_size].shape)
                 )
                 orig_weight[:, n_block_size:] = (
-                    orig_weight[:, n_block_size:] + (weight_bone.transpose(0, 1))[:, :last_size]
+                    orig_weight[:, n_block_size:] - (weight_bone.transpose(0, 1))[:, :last_size]
                 )
             else:
                 orig_weight[:, :n_block_size] = (
-                    (orig_weight[:, :n_block_size].reshape(-1, n_block, r).permute(1, 2, 0) - weight_bone)
+                    (orig_weight[:, :n_block_size].reshape(-1, n_block, r).permute(1, 2, 0) + weight_bone)
                     .permute(2, 0, 1)
                     .reshape(*orig_weight[:, :n_block_size].shape)
                 )
